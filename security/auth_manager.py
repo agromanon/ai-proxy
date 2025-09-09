@@ -22,8 +22,8 @@ class AuthManager:
         
         cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'admin'")
         if cursor.fetchone()[0] == 0:
-            # Create default admin with secure password
-            default_password = secrets.token_urlsafe(16)
+            # Create default admin with known password
+            default_password = "admin123"
             password_hash = self._hash_password(default_password)
             
             cursor.execute("""
@@ -34,8 +34,8 @@ class AuthManager:
             conn.commit()
             
             print("Default admin user created!")
-            print(f"Username: admin")
-            print(f"Password: {default_password}")
+            print("Username: admin")
+            print("Password: admin123")
             print("IMPORTANT: Change this password after first login!")
     
     def _hash_password(self, password: str) -> str:

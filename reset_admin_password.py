@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
 """
-Script to reset admin password
+Reset admin password script
 """
 
 import sys
 import os
-import sqlite3
 import bcrypt
+import secrets
 
-def reset_admin_password(new_password="admin123"):
-    """Reset admin password"""
+# Add the current directory to the path so we can import modules
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from config.database import db_manager
+
+def reset_admin_password(new_password: str = "admin123") -> bool:
+    """
+    Reset the admin password
+    
+    Args:
+        new_password: New password for the admin user
+        
+    Returns:
+        True if successful, False otherwise
+    """
     try:
         # Connect to database
-        conn = sqlite3.connect('app.db')
+        conn = db_manager.get_connection()
         cursor = conn.cursor()
         
         # Hash the new password
@@ -29,14 +42,14 @@ def reset_admin_password(new_password="admin123"):
         # Check if update was successful
         if cursor.rowcount > 0:
             conn.commit()
-            print(f"✅ Admin password reset successfully!")
+            print("✅ Admin password reset successfully!")
             print(f"📝 New credentials:")
             print(f"   Username: admin")
             print(f"   Password: {new_password}")
-            print(f"⚠️  IMPORTANT: Change this password immediately after logging in!")
+            print("⚠️  IMPORTANT: Change this password immediately after logging in!")
             return True
         else:
-            print("❌ Failed to reset admin password")
+            print("❌ Admin user not found")
             return False
             
     except Exception as e:
@@ -46,6 +59,15 @@ def reset_admin_password(new_password="admin123"):
         if 'conn' in locals():
             conn.close()
 
+def generate_secure_admin_password() -> str:
+    """
+    Generate a secure admin password
+    
+    Returns:
+        Secure password string
+    """
+    return secrets.token_urlsafe(16)
+
 if __name__ == "__main__":
     # Default password
     new_password = "admin123"
@@ -54,4 +76,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         new_password = sys.argv[1]
     
-    reset_admin_password(new_password)
+    # Reset admin password
+    success = reset_admin_password(new_password)
+    
+    if not success:
+        sys.exit(1)
