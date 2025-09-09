@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Dashboard</h1>
+        <p class="lead">Welcome to the AI Proxy Admin Panel</p>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-plug text-primary"></i> Providers
+                        </h5>
+                        <p class="card-text">
+                            {% set provider_count = providers|length %}
+                            {{ provider_count }} configured provider{% if provider_count != 1 %}s{% endif %}
+                        </p>
+                        <a href="{{ url_for('web_admin.providers_list') }}" class="btn btn-primary">
+                            Manage Providers
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-gear text-success"></i> Settings
+                        </h5>
+                        <p class="card-text">
+                            Configure server and application settings
+                        </p>
+                        <a href="{{ url_for('web_admin.settings') }}" class="btn btn-success">
+                            Configure Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-chat-quote text-warning"></i> Prompt Config
+                        </h5>
+                        <p class="card-text">
+                            Customize system prompts and behavior
+                        </p>
+                        <a href="{{ url_for('web_admin.prompt_config') }}" class="btn btn-warning">
+                            Configure Prompts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle"></i> System Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Active Provider</h6>
+                                {% if active_provider %}
+                                <p>
+                                    <span class="badge bg-success">{{ active_provider.name }}</span>
+                                </p>
+                                <p><strong>Endpoint:</strong> {{ active_provider.api_endpoint }}</p>
+                                <p><strong>Model:</strong> {{ active_provider.default_model or 'Not set' }}</p>
+                                {% else %}
+                                <p class="text-muted">No active provider</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Application Settings</h6>
+                                <p><strong>Host:</strong> {{ app_settings.server_host }}:{{ app_settings.server_port }}</p>
+                                <p><strong>Logging:</strong> 
+                                    {% if app_settings.enable_full_logging %}<span class="text-success">Enabled</span>{% else %}<span class="text-danger">Disabled</span>{% endif %}
+                                </p>
+                                <p><strong>Rate Limiting:</strong> 
+                                    {% if app_settings.rate_limit_enabled %}<span class="text-success">Enabled</span>{% else %}<span class="text-danger">Disabled</span>{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-lightning"></i> Quick Start
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <ol>
+                            <li><strong>Add Providers</strong>: Configure your AI provider API keys in the Providers section</li>
+                            <li><strong>Activate Provider</strong>: Set one provider as active for use with Claude Code</li>
+                            <li><strong>Configure Prompts</strong>: Customize system prompts if desired</li>
+                            <li><strong>Use with Claude Code</strong>: 
+                                <pre class="bg-light p-2 mt-2"><code>export ANTHROPIC_BASE_URL=http://localhost:8000/v1/messages/openrouter
+claude</code></pre>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

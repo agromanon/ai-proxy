@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>
+                <i class="bi bi-plug"></i> 
+                {% if provider %}Edit Provider{% else %}Add New Provider{% endif %}
+            </h1>
+            <a href="{{ url_for('web_admin.providers_list') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Providers
+            </a>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i> Provider Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="needs-validation" novalidate>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Provider Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ provider.name if provider else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Please enter a provider name.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="api_endpoint" class="form-label">API Endpoint *</label>
+                                <input type="url" class="form-control" id="api_endpoint" name="api_endpoint" 
+                                       value="{{ provider.api_endpoint if provider else '' }}" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid API endpoint URL.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="api_key" class="form-label">API Key *</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="api_key" name="api_key" 
+                                           value="{{ provider.api_key if provider else '' }}" required>
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            onclick="togglePasswordVisibility('api_key')" 
+                                            data-target="#api_key">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">
+                                    Please enter an API key.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="default_model" class="form-label">Default Model</label>
+                                <input type="text" class="form-control" id="default_model" name="default_model" 
+                                       value="{{ provider.default_model if provider else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="auth_method" class="form-label">Authentication Method</label>
+                                <select class="form-select" id="auth_method" name="auth_method">
+                                    <option value="bearer_token" {% if provider and provider.auth_method == 'bearer_token' %}selected{% endif %}>Bearer Token</option>
+                                    <option value="basic_auth" {% if provider and provider.auth_method == 'basic_auth' %}selected{% endif %}>Basic Authentication</option>
+                                    <option value="custom_header" {% if provider and provider.auth_method == 'custom_header' %}selected{% endif %}>Custom Header</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                           {% if provider and provider.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        Active Provider
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Custom Headers</label>
+                        <div id="headers-container">
+                            <!-- Headers will be added here dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                data-action="add-field" 
+                                data-target="#headers-container"
+                                data-template='<div class="col-md-5"><input type="text" class="form-control" name="header_key[]" placeholder="Header Name"></div><div class="col-md-6"><input type="text" class="form-control" name="header_value[]" placeholder="Header Value"></div>'>
+                            <i class="bi bi-plus-circle"></i> Add Header
+                        </button>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if provider %}
+                            <a href="{{ url_for('web_admin.provider_delete', provider_id=provider.id) }}" 
+                               class="btn btn-danger" 
+                               data-confirm="Are you sure you want to delete this provider?">
+                                <i class="bi bi-trash"></i> Delete Provider
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> 
+                                {% if provider %}Update Provider{% else %}Save Provider{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Provider Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>Common Provider Endpoints:</h6>
+                <ul>
+                    <li><strong>Grok (Direct)</strong>: <code>https://api.x.ai/v1</code></li>
+                    <li><strong>Grok (OpenAI)</strong>: <code>https://api.x.ai/v1</code></li>
+                    <li><strong>OpenRouter</strong>: <code>https://openrouter.ai/api/v1</code></li>
+                    <li><strong>AIML API</strong>: <code>https://api.aimlapi.com/v1</code></li>
+                    <li><strong>Synthetic</strong>: <code>https://api.synthetic.new/v1</code></li>
+                    <li><strong>Chutes</strong>: <code>http://llm.chutes.ai/api/v1</code></li>
+                </ul>
+                
+                <h6 class="mt-3">Authentication Tips:</h6>
+                <ul>
+                    <li><strong>Bearer Token</strong>: Most common method, paste your API key as-is</li>
+                    <li><strong>Basic Auth</strong>: For providers using username/password authentication</li>
+                    <li><strong>Custom Header</strong>: For providers requiring specific header names</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize existing headers if editing
+document.addEventListener('DOMContentLoaded', function() {
+    // This would populate existing headers if editing
+});
+</script>
+{% endblock %}

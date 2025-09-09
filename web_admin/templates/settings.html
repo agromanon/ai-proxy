@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>
+                <i class="bi bi-gear"></i> Application Settings
+            </h1>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-server"></i> Server Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="needs-validation" novalidate>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="server_host" class="form-label">Server Host *</label>
+                                <input type="text" class="form-control" id="server_host" name="server_host" 
+                                       value="{{ settings.server_host if settings else '127.0.0.1' }}" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid host.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="server_port" class="form-label">Server Port *</label>
+                                <input type="number" class="form-control" id="server_port" name="server_port" 
+                                       value="{{ settings.server_port if settings else 8000 }}" 
+                                       min="1" max="65535" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid port number (1-65535).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="request_timeout" class="form-label">Request Timeout (seconds) *</label>
+                                <input type="number" class="form-control" id="request_timeout" name="request_timeout" 
+                                       value="{{ settings.request_timeout if settings else 300 }}" 
+                                       min="1" max="3600" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid timeout (1-3600 seconds).
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="log_directory" class="form-label">Log Directory *</label>
+                                <input type="text" class="form-control" id="log_directory" name="log_directory" 
+                                       value="{{ settings.log_directory if settings else 'logs' }}" required>
+                                <div class="invalid-feedback">
+                                    Please enter a log directory.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="secret_key" class="form-label">Secret Key *</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secret_key" name="secret_key" 
+                                           value="{{ settings.secret_key if settings else '' }}" required>
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            onclick="togglePasswordVisibility('secret_key')" 
+                                            data-target="#secret_key">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">
+                                    Please enter a secret key.
+                                </div>
+                                <small class="form-text text-muted">
+                                    Used for session encryption. Change this in production!
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5>
+                            <i class="bi bi-shield-lock"></i> Security Settings
+                        </h5>
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="require_auth" name="require_auth" 
+                                           {% if settings and settings.require_auth %}checked{% endif %}>
+                                    <label class="form-check-label" for="require_auth">
+                                        Require Authentication
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="session_cookie_secure" name="session_cookie_secure" 
+                                           {% if settings and settings.session_cookie_secure %}checked{% endif %}>
+                                    <label class="form-check-label" for="session_cookie_secure">
+                                        Secure Session Cookies
+                                    </label>
+                                    <small class="form-text text-muted">
+                                        Enable for HTTPS only
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5>
+                            <i class="bi bi-speedometer2"></i> Performance Settings
+                        </h5>
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_streaming" name="enable_streaming" 
+                                           {% if settings and settings.enable_streaming %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_streaming">
+                                        Enable Streaming
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable_full_logging" name="enable_full_logging" 
+                                           {% if settings and settings.enable_full_logging %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_full_logging">
+                                        Enable Full Logging
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5>
+                            <i class="bi bi-stopwatch"></i> Rate Limiting
+                        </h5>
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="rate_limit_enabled" name="rate_limit_enabled" 
+                                           {% if settings and settings.rate_limit_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="rate_limit_enabled">
+                                        Enable Rate Limiting
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="rate_limit_requests" class="form-label">Requests per Window</label>
+                                    <input type="number" class="form-control" id="rate_limit_requests" name="rate_limit_requests" 
+                                           value="{{ settings.rate_limit_requests if settings else 100 }}" 
+                                           min="1" max="10000">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="rate_limit_window" class="form-label">Window Size (seconds)</label>
+                                    <input type="number" class="form-control" id="rate_limit_window" name="rate_limit_window" 
+                                           value="{{ settings.rate_limit_window if settings else 3600 }}" 
+                                           min="60" max="86400">
+                                    <small class="form-text text-muted">
+                                        Time window for rate limiting (e.g., 3600 = 1 hour)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

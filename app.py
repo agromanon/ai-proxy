@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AI Proxy - Main Application with Command Alias Routing
+AI Proxy - Main Application with Web Admin Interface
 """
 
 import os
@@ -8,7 +8,7 @@ import json
 import logging
 import traceback
 from datetime import datetime
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response, jsonify, render_template
 from config.database import db_manager
 from config.utils import db_utils
 from config.command_alias_manager import command_alias_manager
@@ -19,6 +19,7 @@ from dynamic_provider_loader import DynamicProviderLoader
 from errors.handlers import handle_api_errors, create_error_response
 from validation.validators import validate_anthropic_request
 from security.rate_limiter import check_rate_limit
+from web_admin.routes import web_admin
 
 # Set up logging
 logging.basicConfig(
@@ -36,10 +37,22 @@ provider_registry = ProviderRegistry()
 provider_loader = DynamicProviderLoader(db_manager, provider_registry)
 
 # Create Flask app
-app = Flask(__name__)
+app = Flask(__name__, 
+           template_folder='web_admin/templates',
+           static_folder='web_admin/static')
 
 # Configure session
 configure_session(app)
+
+# Register blueprints
+app.register_blueprint(web_admin)
+
+# Main dashboard route
+@app.route('/')
+def index():
+    """Main dashboard page"""
+    # Redirect to web admin dashboard
+    return redirect('/dashboard')
 
 # Health check endpoint
 @app.route('/health')
