@@ -7,6 +7,7 @@ import os
 import threading
 from pathlib import Path
 from typing import Optional, Dict, Any
+from datetime import datetime
 
 class DatabaseManager:
     """Thread-safe SQLite database manager"""
@@ -61,7 +62,7 @@ class DatabaseManager:
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Providers table
+        # Providers table with all required columns
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS providers (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,7 +73,10 @@ class DatabaseManager:
                 auth_method TEXT DEFAULT 'bearer_token',
                 is_active BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                model_mapping TEXT,
+                api_standard TEXT DEFAULT 'openai',
+                supported_models TEXT
             )
         """)
         
@@ -204,7 +208,7 @@ class DatabaseManager:
             ON command_aliases(command_alias)
         """)
         
-        # Create default records if they don't exist
+        # Create default records
         self._create_defaults(cursor)
         
         conn.commit()
@@ -218,9 +222,9 @@ class DatabaseManager:
                 INSERT INTO app_settings 
                 (server_port, server_host, enable_full_logging, log_directory, 
                  enable_streaming, request_timeout, require_auth, secret_key,
-                 rate_limit_requests, rate_limit_window)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (8000, '127.0.0.1', True, 'logs', True, 300, True, 'dev-secret-key', 100, 3600))
+                 rate_limit_enabled, rate_limit_requests, rate_limit_window)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (8000, '127.0.0.1', True, 'logs', True, 300, True, 'dev-secret-key', True, 100, 3600))
         
         # Default prompt config
         cursor.execute("SELECT COUNT(*) FROM prompt_config WHERE id = 1")
@@ -285,5 +289,5 @@ class DatabaseManager:
         conn.commit()
         self._create_tables()
 
-# Global database manager instance
+# Global instance
 db_manager = DatabaseManager()

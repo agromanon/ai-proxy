@@ -113,7 +113,7 @@ def provider_new():
     user = get_current_user()
     
     if request.method == 'POST':
-        # Process form data with simplified model mapping
+        # Process form data
         provider_data = {
             'name': request.form['name'],
             'api_endpoint': request.form['api_endpoint'],
@@ -126,7 +126,7 @@ def provider_new():
             'model_mapping': {}
         }
         
-        # Process simplified model mapping
+        # Process model mapping
         model_haiku = request.form.get('model_haiku', '').strip()
         model_sonnet = request.form.get('model_sonnet', '').strip()
         model_opus = request.form.get('model_opus', '').strip()
@@ -147,15 +147,15 @@ def provider_new():
                 model_mapping['claude-3-opus-20240229'] = model_opus
                 model_mapping['claude-3-opus'] = model_opus
             
-            provider_data['model_mapping'] = model_mapping
+            provider_data['model_mapping'] = json.dumps(model_mapping)
         else:
             # Use JSON model mapping if provided (fallback)
             try:
                 json_model_mapping = request.form.get('model_mapping', '{}')
                 if json_model_mapping:
-                    provider_data['model_mapping'] = json.loads(json_model_mapping)
+                    provider_data['model_mapping'] = json_model_mapping
             except json.JSONDecodeError:
-                pass
+                provider_data['model_mapping'] = '{}'
         
         # Process custom headers
         header_keys = request.form.getlist('header_key[]')
@@ -182,7 +182,7 @@ def provider_new():
                 provider_data['auth_method'],
                 provider_data['api_standard'],
                 json.dumps({}),  # supported_models (empty for now)
-                json.dumps(provider_data['model_mapping']),  # model_mapping as JSON
+                provider_data['model_mapping'],  # model_mapping as JSON string
                 provider_data['is_active']
             ))
             
@@ -224,21 +224,8 @@ def provider_edit(provider_id):
         flash('Provider not found')
         return redirect(url_for('web_admin.providers_list'))
     
-    # Parse model mapping for display
-    if provider.get('model_mapping'):
-        try:
-            model_mapping = json.loads(provider['model_mapping'])
-            provider['model_mapping'] = model_mapping
-            
-            # Extract specific models for form fields
-            provider['model_mapping']['haiku'] = model_mapping.get('haiku', model_mapping.get('claude-3-haiku-20240307', ''))
-            provider['model_mapping']['sonnet'] = model_mapping.get('sonnet', model_mapping.get('claude-3-5-sonnet-20241022', ''))
-            provider['model_mapping']['opus'] = model_mapping.get('opus', model_mapping.get('claude-3-opus-20240229', ''))
-        except json.JSONDecodeError:
-            provider['model_mapping'] = {}
-    
     if request.method == 'POST':
-        # Process form data with simplified model mapping
+        # Process form data
         provider_data = {
             'name': request.form['name'],
             'api_endpoint': request.form['api_endpoint'],
@@ -251,7 +238,7 @@ def provider_edit(provider_id):
             'model_mapping': {}
         }
         
-        # Process simplified model mapping
+        # Process model mapping
         model_haiku = request.form.get('model_haiku', '').strip()
         model_sonnet = request.form.get('model_sonnet', '').strip()
         model_opus = request.form.get('model_opus', '').strip()
@@ -272,15 +259,15 @@ def provider_edit(provider_id):
                 model_mapping['claude-3-opus-20240229'] = model_opus
                 model_mapping['claude-3-opus'] = model_opus
             
-            provider_data['model_mapping'] = model_mapping
+            provider_data['model_mapping'] = json.dumps(model_mapping)
         else:
             # Use JSON model mapping if provided (fallback)
             try:
                 json_model_mapping = request.form.get('model_mapping', '{}')
                 if json_model_mapping:
-                    provider_data['model_mapping'] = json.loads(json_model_mapping)
+                    provider_data['model_mapping'] = json_model_mapping
             except json.JSONDecodeError:
-                pass
+                provider_data['model_mapping'] = '{}'
         
         # Process custom headers
         header_keys = request.form.getlist('header_key[]')
@@ -308,7 +295,7 @@ def provider_edit(provider_id):
                 provider_data['auth_method'],
                 provider_data['api_standard'],
                 json.dumps({}),  # supported_models (empty for now)
-                json.dumps(provider_data['model_mapping']),  # model_mapping as JSON
+                provider_data['model_mapping'],  # model_mapping as JSON string
                 provider_data['is_active'],
                 provider_id
             ))
@@ -331,6 +318,19 @@ def provider_edit(provider_id):
             flash(f'Error updating provider: {str(e)}')
         
         return redirect(url_for('web_admin.providers_list'))
+    
+    # Parse model mapping for display
+    if provider.get('model_mapping'):
+        try:
+            model_mapping = json.loads(provider['model_mapping'])
+            provider['model_mapping'] = model_mapping
+            
+            # Extract specific models for form fields
+            provider['model_haiku'] = model_mapping.get('haiku', model_mapping.get('claude-3-haiku-20240307', ''))
+            provider['model_sonnet'] = model_mapping.get('sonnet', model_mapping.get('claude-3-5-sonnet-20241022', ''))
+            provider['model_opus'] = model_mapping.get('opus', model_mapping.get('claude-3-opus-20240229', ''))
+        except json.JSONDecodeError:
+            provider['model_mapping'] = {}
     
     # Get available provider types
     provider_types = provider_registry.get_provider_info()
