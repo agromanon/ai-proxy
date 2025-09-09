@@ -1,0 +1,3 @@
+"""
+Web admin package
+"""
