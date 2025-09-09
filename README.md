@@ -60,21 +60,49 @@ Deploy once, allow multiple developers to use different providers simultaneously
 
 ### One-Command Installation (Linux/macOS)
 ```bash
-curl -sSL https://raw.githubusercontent.com/your-repo/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/agromanon/ai-proxy/master/install.sh | bash
 ```
 
 ### Manual Installation
 ```bash
 # Clone repository
-git clone https://github.com/your-repo/ai-proxy.git
+git clone https://github.com/agromanon/ai-proxy.git
 cd ai-proxy
 
 # Run installation script
-python install.py
+./install.sh
 
 # Start the proxy
 ./start.sh
 ```
+
+### Homebrew/macOS Users (PEP 668 Externally Managed Environment)
+If you're using Homebrew on macOS, you may encounter this error:
+```
+error: externally-managed-environment
+× This environment is externally managed
+```
+
+**Solution**: Use the included installation script which automatically handles virtual environments:
+
+```bash
+# Clone repository
+git clone https://github.com/agromanon/ai-proxy.git
+cd ai-proxy
+
+# Run the smart installation script
+./install.sh
+
+# Start the proxy
+./start.sh
+```
+
+The installation script will:
+1. Automatically create and activate a virtual environment
+2. Install all dependencies in the virtual environment
+3. Configure the application with sensible defaults
+4. Create necessary directories and files
+5. Start the proxy server
 
 ### First-Time Setup
 1. **Access the Web Interface**: Open http://localhost:8000 in your browser
@@ -112,7 +140,7 @@ claude
 
 Add new providers through the intuitive web wizard:
 1. **Provider Info**: Name and API endpoint
-2. **Authentication**: Bearer token, Basic auth, or custom headers
+2. **Authentication**: Bearer token, Basic Auth, or Custom Header
 3. **API Format**: OpenAI, Anthropic, or Grok compatible
 4. **Custom Commands**: Define your own command aliases
 5. **Test & Save**: Verify connection before saving
@@ -157,12 +185,6 @@ Deploy to popular cloud platforms:
 - [User Guide](docs/user_guide.md) - Complete usage instructions
 - [Installation Guide](INSTALL.md) - Installation instructions
 - [Troubleshooting Guide](TROUBLESHOOTING.md) - Common issues and solutions
-- [Deployment Guide](docs/deployment.md) - Local and cloud deployment
-- [Client Usage](docs/client_usage.md) - Claude Code configuration
-- [Developer Guide](docs/developer_guide.md) - Extending the proxy
-- [API Reference](docs/api_reference.md) - Endpoint documentation
-
-- [User Guide](docs/user_guide.md) - Complete usage instructions
 - [Deployment Guide](docs/deployment.md) - Local and cloud deployment
 - [Client Usage](docs/client_usage.md) - Claude Code configuration
 - [Developer Guide](docs/developer_guide.md) - Extending the proxy
