@@ -155,6 +155,14 @@ Deploy to popular cloud platforms:
 ## 📚 Documentation
 
 - [User Guide](docs/user_guide.md) - Complete usage instructions
+- [Installation Guide](INSTALL.md) - Installation instructions
+- [Troubleshooting Guide](TROUBLESHOOTING.md) - Common issues and solutions
+- [Deployment Guide](docs/deployment.md) - Local and cloud deployment
+- [Client Usage](docs/client_usage.md) - Claude Code configuration
+- [Developer Guide](docs/developer_guide.md) - Extending the proxy
+- [API Reference](docs/api_reference.md) - Endpoint documentation
+
+- [User Guide](docs/user_guide.md) - Complete usage instructions
 - [Deployment Guide](docs/deployment.md) - Local and cloud deployment
 - [Client Usage](docs/client_usage.md) - Claude Code configuration
 - [Developer Guide](docs/developer_guide.md) - Extending the proxy

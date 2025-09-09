@@ -6,17 +6,23 @@
 
 ## Installation Methods
 
-### Method 1: Install from Source (Recommended)
+### Method 1: Install from Source with Virtual Environment (Recommended)
 ```bash
 # Clone the repository
 git clone https://github.com/agromanon/ai-proxy.git
 cd ai-proxy
 
-# Install in development mode
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install the package in development mode
 pip install -e .
 
 # Run the proxy
-ai-proxy
+python app.py
 ```
 
 ### Method 2: Install from PyPI (When available)
@@ -28,18 +34,66 @@ pip install ai-proxy
 ai-proxy
 ```
 
-### Method 3: Run without installation
+### Method 3: Run without installation using virtual environment
 ```bash
 # Clone the repository
 git clone https://github.com/agromanon/ai-proxy.git
 cd ai-proxy
 
 # Create virtual environment
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Run the proxy
+python app.py
+```
+
+## Platform-Specific Instructions
+
+### Homebrew/macOS Users (PEP 668 Externally Managed Environment)
+If you're using Homebrew on macOS, you may encounter this error:
+```
+error: externally-managed-environment
+× This environment is externally managed
+```
+
+**Solution**: Use a virtual environment instead of installing globally.
+
+```bash
+# Clone the repository
+git clone https://github.com/agromanon/ai-proxy.git
+cd ai-proxy
+
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Install the package
+pip install -e .
+
+# Run the proxy
+python app.py
+```
+
+### Ubuntu/Debian Users with System Python
+If you encounter the externally managed environment error on Ubuntu/Debian:
+
+```bash
+# Install python3-venv if not already installed
+sudo apt update
+sudo apt install python3-venv
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install the package
+pip install -e .
 
 # Run the proxy
 python app.py
@@ -77,8 +131,13 @@ To update to the latest version:
 # If installed from source
 cd ai-proxy
 git pull
+source venv/bin/activate  # If using virtual environment
 pip install -e .
 
 # If installed from PyPI
 pip install --upgrade ai-proxy
 ```
+
+## Troubleshooting
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues and solutions.
