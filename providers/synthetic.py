@@ -13,7 +13,7 @@ class SyntheticProvider(BaseProvider):
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        # Ensure correct endpoint
+        # Ensure correct endpoint for Synthetic
         if 'synthetic.new' not in self.api_endpoint:
             self.api_endpoint = 'https://api.synthetic.new/v1'
     

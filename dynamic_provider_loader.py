@@ -2,7 +2,9 @@
 Dynamic provider loader with endpoint support
 """
 
-from typing import Dict, Any, Optional, List
+import json
+import sqlite3
+from typing import Dict, List, Any, Optional
 from provider_registry import ProviderRegistry
 from config.database import db_manager
 
@@ -101,16 +103,37 @@ class DynamicProviderLoader:
             'is_active': bool(row[6]),
             'created_at': row[7],
             'updated_at': row[8],
+            'api_standard': row[9] if len(row) > 9 else 'openai',
+            'supported_models': row[10] if len(row) > 10 else '{}',
+            'model_mapping': row[11] if len(row) > 11 else '{}',
             'headers': {}
         }
         
         # Parse headers
-        if row[9]:  # headers column
-            headers_list = row[9].split(',')
+        if len(row) > 12 and row[12]:  # headers column
+            headers_list = row[12].split(',')
             for header_pair in headers_list:
                 if ':' in header_pair:
                     key, value = header_pair.split(':', 1)
                     provider_config['headers'][key] = value
+        
+        # Parse model mapping
+        try:
+            if provider_config['model_mapping']:
+                provider_config['model_mapping'] = json.loads(provider_config['model_mapping'])
+            else:
+                provider_config['model_mapping'] = {}
+        except json.JSONDecodeError:
+            provider_config['model_mapping'] = {}
+        
+        # Parse supported models
+        try:
+            if provider_config['supported_models']:
+                provider_config['supported_models'] = json.loads(provider_config['supported_models'])
+            else:
+                provider_config['supported_models'] = {}
+        except json.JSONDecodeError:
+            provider_config['supported_models'] = {}
         
         return provider_config
     
@@ -134,7 +157,7 @@ class DynamicProviderLoader:
             return None
     
     def get_available_providers(self) -> List[Dict[str, Any]]:
-        """Get list of available providers with their endpoints"""
+        """Get information about all available providers"""
         providers = self.load_all_providers()
         provider_info = self.provider_registry.get_provider_info()
         
@@ -147,5 +170,115 @@ class DynamicProviderLoader:
                 result.append(provider_with_endpoints)
         
         return result
+    
+    def get_provider_endpoints(self, provider_name: str) -> Dict[str, str]:
+        """Get endpoints for a specific provider"""
+        provider_key = self.provider_registry.normalize_provider_name(provider_name)
+        return self.provider_registry.get_provider_endpoints(provider_key)
+    
+    def get_all_endpoints(self) -> List[Dict[str, str]]:
+        """Get all available endpoints with their descriptions"""
+        providers = self.load_all_providers()
+        endpoints = []
+        
+        for provider in providers:
+            provider_key = self.provider_registry.normalize_provider_name(provider['name'])
+            provider_endpoints = self.provider_registry.get_provider_endpoints(provider_key)
+            
+            # Standard endpoint
+            endpoints.append({
+                'endpoint': provider_endpoints.get('standard', f'/v1/messages/{provider_key}'),
+                'description': f"{provider['name']} with standard prompt",
+                'provider': provider['name'],
+                'custom_prompt': False
+            })
+            
+            # Custom endpoint
+            endpoints.append({
+                'endpoint': provider_endpoints.get('custom', f'/v1/messages/{provider_key}-custom'),
+                'description': f"{provider['name']} with custom prompt",
+                'provider': provider['name'],
+                'custom_prompt': True
+            })
+        
+        return endpoints
+    
+    def is_valid_provider(self, provider_name: str) -> bool:
+        """Check if a provider name is valid"""
+        return self.provider_registry.is_valid_provider(provider_name)
+    
+    def normalize_provider_name(self, provider_name: str) -> str:
+        """Normalize provider name to match registry key"""
+        return self.provider_registry.normalize_provider_name(provider_name)
+    
+    def get_model_mapping(self, provider_name: str, model_name: str) -> Optional[str]:
+        """
+        Get mapped model name for a provider
+        
+        Args:
+            provider_name: Name of the provider
+            model_name: Original model name (e.g., claude-3-5-sonnet-20241022)
+            
+        Returns:
+            Mapped model name or None if not found
+        """
+        provider = self.get_provider_by_name(provider_name)
+        if not provider:
+            return None
+            
+        model_mapping = provider.get('model_mapping', {})
+        if not model_mapping:
+            return None
+            
+        # Try exact match first
+        if model_name in model_mapping:
+            return model_mapping[model_name]
+            
+        # Try normalized model name
+        normalized_model = model_name.lower().replace(' ', '-').replace('_', '-')
+        if normalized_model in model_mapping:
+            return model_mapping[normalized_model]
+            
+        # Try simplified model name
+        if '-' in normalized_model:
+            simplified_model = normalized_model.split('-')[0]
+            if simplified_model in model_mapping:
+                return model_mapping[simplified_model]
+                
+        return None
+    
+    def get_predefined_headers(self, provider_name: str) -> Dict[str, str]:
+        """
+        Get predefined headers for a provider based on its API standard
+        
+        Args:
+            provider_name: Name of the provider
+            
+        Returns:
+            Dictionary of predefined headers
+        """
+        provider = self.get_provider_by_name(provider_name)
+        if not provider:
+            return {}
+            
+        api_standard = provider.get('api_standard', 'openai').lower()
+        
+        # Predefined headers for different API standards
+        predefined_headers = {
+            'anthropic': {
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            'openai': {
+                'OpenAI-Organization': '',
+                'OpenAI-Project': ''
+            },
+            'grok': {
+                'X-API-Key': ''
+            }
+        }
+        
+        return predefined_headers.get(api_standard, {})
 
-# Global instance is created in app.py
+# Global instance
+provider_loader = DynamicProviderLoader(db_manager, ProviderRegistry())

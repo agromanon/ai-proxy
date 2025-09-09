@@ -6,13 +6,14 @@ import requests
 import json
 from typing import Dict, Any, Optional
 from providers.base import BaseProvider
+from converter.enhanced_converter import convert_anthropic_to_provider, convert_provider_to_anthropic
 
 class GrokDirectProvider(BaseProvider):
     """Grok Direct provider implementation using Anthropic format"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        # Ensure correct endpoint
+        # Ensure correct endpoint for xAI's Anthropic-compatible API
         if 'api.x.ai' not in self.api_endpoint:
             self.api_endpoint = 'https://api.x.ai/v1'
     
@@ -28,7 +29,7 @@ class GrokDirectProvider(BaseProvider):
             request_data['model'] = 'grok-4'
         
         # Apply custom prompt if needed
-        if custom_prompt_template and prompt_config:
+        if custom_prompt_template:
             # This would use the existing system prompt parsing logic
             pass
             

@@ -5,9 +5,10 @@ Web Admin Routes for AI Proxy
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from functools import wraps
 import json
+import sqlite3
 from config.database import db_manager
 from config.utils import db_utils
-from security.auth_manager import auth_manager, session_manager, api_key_manager
+from security.auth_manager import auth_manager, session_manager
 from security.utils import require_auth, require_admin, get_current_user
 from provider_registry import provider_registry
 from dynamic_provider_loader import DynamicProviderLoader
@@ -112,16 +113,49 @@ def provider_new():
     user = get_current_user()
     
     if request.method == 'POST':
-        # Process form data
+        # Process form data with simplified model mapping
         provider_data = {
             'name': request.form['name'],
             'api_endpoint': request.form['api_endpoint'],
             'api_key': request.form['api_key'],
             'default_model': request.form.get('default_model', ''),
             'auth_method': request.form.get('auth_method', 'bearer_token'),
+            'api_standard': request.form.get('api_standard', 'openai'),
             'is_active': 'is_active' in request.form,
-            'headers': {}
+            'headers': {},
+            'model_mapping': {}
         }
+        
+        # Process simplified model mapping
+        model_haiku = request.form.get('model_haiku', '').strip()
+        model_sonnet = request.form.get('model_sonnet', '').strip()
+        model_opus = request.form.get('model_opus', '').strip()
+        
+        # Build model mapping dictionary
+        if model_haiku or model_sonnet or model_opus:
+            model_mapping = {}
+            if model_haiku:
+                model_mapping['haiku'] = model_haiku
+                model_mapping['claude-3-haiku-20240307'] = model_haiku
+                model_mapping['claude-3-haiku'] = model_haiku
+            if model_sonnet:
+                model_mapping['sonnet'] = model_sonnet
+                model_mapping['claude-3-5-sonnet-20241022'] = model_sonnet
+                model_mapping['claude-3-5-sonnet'] = model_sonnet
+            if model_opus:
+                model_mapping['opus'] = model_opus
+                model_mapping['claude-3-opus-20240229'] = model_opus
+                model_mapping['claude-3-opus'] = model_opus
+            
+            provider_data['model_mapping'] = model_mapping
+        else:
+            # Use JSON model mapping if provided (fallback)
+            try:
+                json_model_mapping = request.form.get('model_mapping', '{}')
+                if json_model_mapping:
+                    provider_data['model_mapping'] = json.loads(json_model_mapping)
+            except json.JSONDecodeError:
+                pass
         
         # Process custom headers
         header_keys = request.form.getlist('header_key[]')
@@ -137,14 +171,18 @@ def provider_new():
             
             cursor.execute("""
                 INSERT INTO providers 
-                (name, api_endpoint, api_key, default_model, auth_method, is_active)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (name, api_endpoint, api_key, default_model, auth_method, api_standard, 
+                 supported_models, model_mapping, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 provider_data['name'],
                 provider_data['api_endpoint'],
                 provider_data['api_key'],
                 provider_data['default_model'],
                 provider_data['auth_method'],
+                provider_data['api_standard'],
+                json.dumps({}),  # supported_models (empty for now)
+                json.dumps(provider_data['model_mapping']),  # model_mapping as JSON
                 provider_data['is_active']
             ))
             
@@ -159,7 +197,7 @@ def provider_new():
                 """, (provider_id, key, value))
             
             conn.commit()
-            flash('Provider added successfully')
+            flash('Provider added successfully!')
             
         except Exception as e:
             flash(f'Error adding provider: {str(e)}')
@@ -186,17 +224,63 @@ def provider_edit(provider_id):
         flash('Provider not found')
         return redirect(url_for('web_admin.providers_list'))
     
+    # Parse model mapping for display
+    if provider.get('model_mapping'):
+        try:
+            model_mapping = json.loads(provider['model_mapping'])
+            provider['model_mapping'] = model_mapping
+            
+            # Extract specific models for form fields
+            provider['model_mapping']['haiku'] = model_mapping.get('haiku', model_mapping.get('claude-3-haiku-20240307', ''))
+            provider['model_mapping']['sonnet'] = model_mapping.get('sonnet', model_mapping.get('claude-3-5-sonnet-20241022', ''))
+            provider['model_mapping']['opus'] = model_mapping.get('opus', model_mapping.get('claude-3-opus-20240229', ''))
+        except json.JSONDecodeError:
+            provider['model_mapping'] = {}
+    
     if request.method == 'POST':
-        # Process form data
+        # Process form data with simplified model mapping
         provider_data = {
             'name': request.form['name'],
             'api_endpoint': request.form['api_endpoint'],
             'api_key': request.form['api_key'],
             'default_model': request.form.get('default_model', ''),
             'auth_method': request.form.get('auth_method', 'bearer_token'),
+            'api_standard': request.form.get('api_standard', 'openai'),
             'is_active': 'is_active' in request.form,
-            'headers': {}
+            'headers': {},
+            'model_mapping': {}
         }
+        
+        # Process simplified model mapping
+        model_haiku = request.form.get('model_haiku', '').strip()
+        model_sonnet = request.form.get('model_sonnet', '').strip()
+        model_opus = request.form.get('model_opus', '').strip()
+        
+        # Build model mapping dictionary
+        if model_haiku or model_sonnet or model_opus:
+            model_mapping = {}
+            if model_haiku:
+                model_mapping['haiku'] = model_haiku
+                model_mapping['claude-3-haiku-20240307'] = model_haiku
+                model_mapping['claude-3-haiku'] = model_haiku
+            if model_sonnet:
+                model_mapping['sonnet'] = model_sonnet
+                model_mapping['claude-3-5-sonnet-20241022'] = model_sonnet
+                model_mapping['claude-3-5-sonnet'] = model_sonnet
+            if model_opus:
+                model_mapping['opus'] = model_opus
+                model_mapping['claude-3-opus-20240229'] = model_opus
+                model_mapping['claude-3-opus'] = model_opus
+            
+            provider_data['model_mapping'] = model_mapping
+        else:
+            # Use JSON model mapping if provided (fallback)
+            try:
+                json_model_mapping = request.form.get('model_mapping', '{}')
+                if json_model_mapping:
+                    provider_data['model_mapping'] = json.loads(json_model_mapping)
+            except json.JSONDecodeError:
+                pass
         
         # Process custom headers
         header_keys = request.form.getlist('header_key[]')
@@ -213,7 +297,8 @@ def provider_edit(provider_id):
             cursor.execute("""
                 UPDATE providers SET
                 name = ?, api_endpoint = ?, api_key = ?, default_model = ?,
-                auth_method = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+                auth_method = ?, api_standard = ?, supported_models = ?, 
+                model_mapping = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             """, (
                 provider_data['name'],
@@ -221,6 +306,9 @@ def provider_edit(provider_id):
                 provider_data['api_key'],
                 provider_data['default_model'],
                 provider_data['auth_method'],
+                provider_data['api_standard'],
+                json.dumps({}),  # supported_models (empty for now)
+                json.dumps(provider_data['model_mapping']),  # model_mapping as JSON
                 provider_data['is_active'],
                 provider_id
             ))
@@ -237,7 +325,7 @@ def provider_edit(provider_id):
                 """, (provider_id, key, value))
             
             conn.commit()
-            flash('Provider updated successfully')
+            flash('Provider updated successfully!')
             
         except Exception as e:
             flash(f'Error updating provider: {str(e)}')
@@ -259,15 +347,13 @@ def provider_delete(provider_id):
     try:
         conn = db_manager.get_connection()
         cursor = conn.cursor()
-        
-        # Delete headers first (foreign key constraint)
+        # Delete headers first (due to foreign key constraint)
         cursor.execute("DELETE FROM provider_headers WHERE provider_id = ?", (provider_id,))
-        
         # Delete provider
         cursor.execute("DELETE FROM providers WHERE id = ?", (provider_id,))
         conn.commit()
         
-        flash('Provider deleted successfully')
+        flash('Provider deleted successfully!')
     except Exception as e:
         flash(f'Error deleting provider: {str(e)}')
     
@@ -280,15 +366,13 @@ def provider_activate(provider_id):
     try:
         conn = db_manager.get_connection()
         cursor = conn.cursor()
-        
-        # Deactivate all providers
+        # First, deactivate all providers
         cursor.execute("UPDATE providers SET is_active = 0")
-        
-        # Activate selected provider
+        # Then, activate the specified provider
         cursor.execute("UPDATE providers SET is_active = 1 WHERE id = ?", (provider_id,))
         conn.commit()
         
-        flash('Provider activated successfully')
+        flash('Provider activated successfully!')
     except Exception as e:
         flash(f'Error activating provider: {str(e)}')
     
@@ -299,7 +383,7 @@ def provider_activate(provider_id):
 def provider_test(provider_id):
     """Test provider connection"""
     try:
-        # Get provider
+        # Get provider config
         provider_config = provider_loader.get_provider_by_id(provider_id)
         if not provider_config:
             flash('Provider not found')
@@ -314,9 +398,9 @@ def provider_test(provider_id):
         # Test connection
         success = provider_instance.test_connection()
         if success:
-            flash('Provider connection test successful')
+            flash('Provider connection test successful!')
         else:
-            flash('Provider connection test failed')
+            flash('Provider connection test failed!')
             
     except Exception as e:
         flash(f'Error testing provider: {str(e)}')
@@ -350,7 +434,7 @@ def settings():
         # Update settings
         success = db_utils.update_app_settings(new_settings)
         if success:
-            flash('Settings updated successfully')
+            flash('Settings updated successfully!')
         else:
             flash('Error updating settings')
         
@@ -381,7 +465,7 @@ def prompt_config():
         # Update config
         success = db_utils.update_prompt_config(new_config)
         if success:
-            flash('Prompt configuration updated successfully')
+            flash('Prompt configuration updated successfully!')
         else:
             flash('Error updating prompt configuration')
         
@@ -415,7 +499,7 @@ def profile():
             # Update password
             success = auth_manager.update_user_password(user['id'], new_password)
             if success:
-                flash('Password updated successfully')
+                flash('Password updated successfully!')
             else:
                 flash('Error updating password')
         

@@ -61,7 +61,6 @@ class OpenRouterProvider(BaseProvider):
     
     def process_stream_response(self, response: requests.Response) -> Any:
         """Process streaming response from OpenRouter"""
-        # Streaming is handled by the main proxy
         return response
     
     def test_connection(self) -> bool:

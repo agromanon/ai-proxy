@@ -8,7 +8,7 @@ import json
 import logging
 import traceback
 from datetime import datetime
-from flask import Flask, request, Response, jsonify, render_template
+from flask import Flask, request, Response, jsonify, render_template, redirect, url_for
 from config.database import db_manager
 from config.utils import db_utils
 from config.command_alias_manager import command_alias_manager
@@ -47,18 +47,17 @@ configure_session(app)
 # Register blueprints
 app.register_blueprint(web_admin)
 
-# Main dashboard route
-@app.route('/')
-def index():
-    """Main dashboard page"""
-    # Redirect to web admin dashboard
-    return redirect('/dashboard')
-
 # Health check endpoint
 @app.route('/health')
 def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
+
+# Main dashboard route (redirects to web admin)
+@app.route('/')
+def index():
+    """Main dashboard page - redirects to web admin"""
+    return redirect(url_for('web_admin.dashboard'))
 
 # Dynamic routing based on command aliases
 @app.route('/v1/messages/<command_alias>', methods=['POST'])

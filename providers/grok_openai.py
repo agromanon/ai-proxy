@@ -13,7 +13,7 @@ class GrokOpenAIProvider(BaseProvider):
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        # Ensure correct endpoint
+        # Ensure correct endpoint for xAI's OpenAI-compatible API
         if 'api.x.ai' not in self.api_endpoint:
             self.api_endpoint = 'https://api.x.ai/v1'
     
@@ -37,9 +37,6 @@ class GrokOpenAIProvider(BaseProvider):
         
         # Add custom headers
         headers.update(self.headers)
-        
-        # Map model to grok-4
-        provider_request['model'] = 'grok-4'
         
         url = f"{self.api_endpoint}/chat/completions"
         
@@ -75,7 +72,7 @@ class GrokOpenAIProvider(BaseProvider):
             }
             
             test_request = {
-                "model": "grok-4",
+                "model": self.default_model or "grok-4",
                 "messages": [{"role": "user", "content": "Hello"}],
                 "max_tokens": 10
             }

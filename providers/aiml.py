@@ -13,7 +13,7 @@ class AIMLProvider(BaseProvider):
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        # Ensure correct endpoint
+        # Ensure correct endpoint for AIML
         if 'aimlapi.com' not in self.api_endpoint:
             self.api_endpoint = 'https://api.aimlapi.com/v1'
     

@@ -4,6 +4,7 @@ Database utilities and helpers
 
 import sqlite3
 import os
+import json
 from typing import List, Dict, Any, Optional
 from config.database import db_manager
 
@@ -37,12 +38,15 @@ class DatabaseUtils:
                 'is_active': bool(row[6]),
                 'created_at': row[7],
                 'updated_at': row[8],
+                'api_standard': row[9] if len(row) > 9 else 'openai',
+                'supported_models': row[10] if len(row) > 10 else '{}',
+                'model_mapping': row[11] if len(row) > 11 else '{}',
                 'headers': {}
             }
             
             # Parse headers
-            if row[9]:  # headers column
-                headers_list = row[9].split(',')
+            if row[12] if len(row) > 12 else row[9]:  # headers column
+                headers_list = (row[12] if len(row) > 12 else row[9]).split(',')
                 for header_pair in headers_list:
                     if ':' in header_pair:
                         key, value = header_pair.split(':', 1)
@@ -79,12 +83,15 @@ class DatabaseUtils:
                 'is_active': bool(row[6]),
                 'created_at': row[7],
                 'updated_at': row[8],
+                'api_standard': row[9] if len(row) > 9 else 'openai',
+                'supported_models': row[10] if len(row) > 10 else '{}',
+                'model_mapping': row[11] if len(row) > 11 else '{}',
                 'headers': {}
             }
             
             # Parse headers
-            if row[9]:  # headers column
-                headers_list = row[9].split(',')
+            if row[12] if len(row) > 12 else row[9]:  # headers column
+                headers_list = (row[12] if len(row) > 12 else row[9]).split(',')
                 for header_pair in headers_list:
                     if ':' in header_pair:
                         key, value = header_pair.split(':', 1)
@@ -121,12 +128,15 @@ class DatabaseUtils:
                 'is_active': bool(row[6]),
                 'created_at': row[7],
                 'updated_at': row[8],
+                'api_standard': row[9] if len(row) > 9 else 'openai',
+                'supported_models': row[10] if len(row) > 10 else '{}',
+                'model_mapping': row[11] if len(row) > 11 else '{}',
                 'headers': {}
             }
             
             # Parse headers
-            if row[9]:  # headers column
-                headers_list = row[9].split(',')
+            if row[12] if len(row) > 12 else row[9]:  # headers column
+                headers_list = (row[12] if len(row) > 12 else row[9]).split(',')
                 for header_pair in headers_list:
                     if ':' in header_pair:
                         key, value = header_pair.split(':', 1)
@@ -296,7 +306,7 @@ class DatabaseUtils:
             conn.commit()
             return cursor.lastrowid
         except Exception as e:
-            print(f"Error logging request: {e}")
+            print(f"Error logging request: {str(e)}")
             return None
 
 # Global instance

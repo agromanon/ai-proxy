@@ -27,8 +27,9 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>API Standard</th>
                                 <th>Endpoint</th>
-                                <th>Model</th>
+                                <th>Default Model</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -43,7 +44,14 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <code class="provider-endpoint">{{ provider.api_endpoint }}</code>
+                                    <span class="badge bg-info">
+                                        {{ provider.api_standard|upper if provider.api_standard else 'OPENAI' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <code class="provider-endpoint" title="{{ provider.api_endpoint }}">
+                                        {{ provider.api_endpoint|truncate(40, True) }}
+                                    </code>
                                 </td>
                                 <td>{{ provider.default_model or 'Not set' }}</td>
                                 <td>
@@ -109,6 +117,14 @@
                 <h6>Using Providers with Claude Code:</h6>
                 <p>After configuring and activating a provider, use it with Claude Code:</p>
                 
+                <div class="quick-links mb-3">
+                    {% for provider in providers %}
+                    <a href="{{ url_for('web_admin.provider_edit', provider_id=provider.id) }}" class="quick-link">
+                        <i class="bi bi-gear"></i> {{ provider.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+                
                 <pre class="bg-light p-3 rounded"><code># For OpenRouter with standard prompt
 export ANTHROPIC_BASE_URL=http://localhost:8000/v1/messages/openrouter
 claude
@@ -131,7 +147,7 @@ claude</code></pre>
                                     <i class="bi bi-plug"></i>
                                 </div>
                                 <h5>{{ provider.name }}</h5>
-                                <p class="text-muted">{{ provider.api_endpoint }}</p>
+                                <p class="text-muted">{{ provider.api_endpoint|truncate(30, True) }}</p>
                                 <div class="d-grid gap-2">
                                     <a href="{{ url_for('web_admin.provider_edit', provider_id=provider.id) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-gear"></i> Configure

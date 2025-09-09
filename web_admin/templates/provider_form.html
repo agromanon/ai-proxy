@@ -20,7 +20,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form method="POST" class="needs-validation" novalidate>
+                <form method="POST" class="needs-validation" novalidate id="provider-form">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -34,6 +34,25 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
+                                <label for="api_standard" class="form-label">API Standard *</label>
+                                <select class="form-select" id="api_standard" name="api_standard" required>
+                                    <option value="anthropic" {% if provider and provider.api_standard == 'anthropic' %}selected{% endif %}>Anthropic</option>
+                                    <option value="openai" {% if provider and provider.api_standard == 'openai' %}selected{% endif %}>OpenAI</option>
+                                    <option value="grok" {% if provider and provider.api_standard == 'grok' %}selected{% endif %}>Grok/XAI</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select an API standard.
+                                </div>
+                                <small class="form-text text-muted">
+                                    Select the API format this provider uses
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
                                 <label for="api_endpoint" class="form-label">API Endpoint *</label>
                                 <input type="url" class="form-control" id="api_endpoint" name="api_endpoint" 
                                        value="{{ provider.api_endpoint if provider else '' }}" required>
@@ -42,9 +61,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="api_key" class="form-label">API Key *</label>
@@ -62,16 +78,19 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="default_model" class="form-label">Default Model</label>
                                 <input type="text" class="form-control" id="default_model" name="default_model" 
                                        value="{{ provider.default_model if provider else '' }}">
+                                <small class="form-text text-muted">
+                                    Default model to use when none is specified
+                                </small>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="auth_method" class="form-label">Authentication Method</label>
@@ -82,7 +101,10 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
                             <div class="mb-3">
                                 <label class="form-label">Status</label>
                                 <div class="form-check">
@@ -96,15 +118,106 @@
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Custom Headers</label>
-                        <div id="headers-container">
-                            <!-- Headers will be added here dynamically -->
+                    <!-- User-Friendly Model Mapping Section -->
+                    <div class="form-section">
+                        <h5>
+                            <i class="bi bi-diagram-3"></i> Model Mapping
+                        </h5>
+                        <hr>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            Map Anthropic models to equivalent models available on this provider. 
+                            Leave fields empty to use the default model specified above.
                         </div>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" 
-                                data-action="add-field" 
-                                data-target="#headers-container"
-                                data-template='<div class="col-md-5"><input type="text" class="form-control" name="header_key[]" placeholder="Header Name"></div><div class="col-md-6"><input type="text" class="form-control" name="header_value[]" placeholder="Header Value"></div>'>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="model_haiku" class="form-label">Haiku Equivalent</label>
+                                    <input type="text" class="form-control" id="model_haiku" name="model_haiku" 
+                                           placeholder="e.g., claude-3-haiku-20240307" 
+                                           value="{{ provider.model_mapping.haiku if provider and provider.model_mapping else '' }}">
+                                    <small class="form-text text-muted">
+                                        Model equivalent to Claude 3 Haiku
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="model_sonnet" class="form-label">Sonnet Equivalent</label>
+                                    <input type="text" class="form-control" id="model_sonnet" name="model_sonnet" 
+                                           placeholder="e.g., claude-3-5-sonnet-20241022" 
+                                           value="{{ provider.model_mapping.sonnet if provider and provider.model_mapping else '' }}">
+                                    <small class="form-text text-muted">
+                                        Model equivalent to Claude 3.5 Sonnet
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="model_opus" class="form-label">Opus Equivalent</label>
+                                    <input type="text" class="form-control" id="model_opus" name="model_opus" 
+                                           placeholder="e.g., claude-3-opus-20240229" 
+                                           value="{{ provider.model_mapping.opus if provider and provider.model_mapping else '' }}">
+                                    <small class="form-text text-muted">
+                                        Model equivalent to Claude 3 Opus
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden field to store JSON model mapping -->
+                        <input type="hidden" id="model_mapping" name="model_mapping" 
+                               value="{{ provider.model_mapping_json if provider else '{}' }}">
+                    </div>
+                    
+                    <div class="form-section">
+                        <h5>
+                            <i class="bi bi-list"></i> Custom Headers
+                        </h5>
+                        <hr>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            Provider-specific headers. Pre-filled defaults for known providers.
+                        </div>
+                        
+                        <div id="headers-container">
+                            {% if provider and provider.headers %}
+                                {% for key, value in provider.headers.items() %}
+                                <div class="row mb-2 header-row">
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" name="header_key[]" placeholder="Header Name" value="{{ key }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" name="header_value[]" placeholder="Header Value" value="{{ value }}">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeHeader(this)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <div class="row mb-2 header-row">
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control header-name" name="header_key[]" placeholder="Header Name">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control header-value" name="header_value[]" placeholder="Header Value">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeHeader(this)" disabled>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addHeader()">
                             <i class="bi bi-plus-circle"></i> Add Header
                         </button>
                     </div>
@@ -139,19 +252,19 @@
             <div class="card-body">
                 <h6>Common Provider Endpoints:</h6>
                 <ul>
-                    <li><strong>Grok (Direct)</strong>: <code>https://api.x.ai/v1</code></li>
-                    <li><strong>Grok (OpenAI)</strong>: <code>https://api.x.ai/v1</code></li>
-                    <li><strong>OpenRouter</strong>: <code>https://openrouter.ai/api/v1</code></li>
-                    <li><strong>AIML API</strong>: <code>https://api.aimlapi.com/v1</code></li>
-                    <li><strong>Synthetic</strong>: <code>https://api.synthetic.new/v1</code></li>
-                    <li><strong>Chutes</strong>: <code>http://llm.chutes.ai/api/v1</code></li>
+                    <li><strong>Grok (Direct)</strong>: <code>https://api.x.ai/v1</code> (Anthropic format)</li>
+                    <li><strong>Grok (OpenAI)</strong>: <code>https://api.x.ai/v1</code> (OpenAI format)</li>
+                    <li><strong>OpenRouter</strong>: <code>https://openrouter.ai/api/v1</code> (OpenAI format)</li>
+                    <li><strong>AIML API</strong>: <code>https://api.aimlapi.com/v1</code> (OpenAI format)</li>
+                    <li><strong>Synthetic</strong>: <code>https://api.synthetic.new/v1</code> (OpenAI format)</li>
+                    <li><strong>Chutes</strong>: <code>http://llm.chutes.ai/api/v1</code> (OpenAI format)</li>
                 </ul>
                 
-                <h6 class="mt-3">Authentication Tips:</h6>
+                <h6 class="mt-3">API Standards:</h6>
                 <ul>
-                    <li><strong>Bearer Token</strong>: Most common method, paste your API key as-is</li>
-                    <li><strong>Basic Auth</strong>: For providers using username/password authentication</li>
-                    <li><strong>Custom Header</strong>: For providers requiring specific header names</li>
+                    <li><strong>Anthropic</strong>: Uses Anthropic API format (messages endpoint)</li>
+                    <li><strong>OpenAI</strong>: Uses OpenAI API format (chat/completions endpoint)</li>
+                    <li><strong>Grok</strong>: xAI's custom format (similar to OpenAI)</li>
                 </ul>
             </div>
         </div>
@@ -161,9 +274,196 @@
 
 {% block scripts %}
 <script>
-// Initialize existing headers if editing
+function addHeader() {
+    const container = document.getElementById('headers-container');
+    const row = document.createElement('div');
+    row.className = 'row mb-2 header-row';
+    row.innerHTML = `
+        <div class="col-md-5">
+            <input type="text" class="form-control header-name" name="header_key[]" placeholder="Header Name">
+        </div>
+        <div class="col-md-6">
+            <input type="text" class="form-control header-value" name="header_value[]" placeholder="Header Value">
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeHeader(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(row);
+    
+    // Add event listeners for autocomplete
+    addHeaderAutocomplete();
+}
+
+function removeHeader(button) {
+    const row = button.closest('.header-row');
+    if (row) {
+        row.remove();
+    }
+}
+
+function togglePasswordVisibility(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = document.querySelector(`[data-target="#${fieldId}"] i`);
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        field.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+// Add autocomplete for common headers based on provider type
+function addHeaderAutocomplete() {
+    const apiStandardSelect = document.getElementById('api_standard');
+    const headerNames = document.querySelectorAll('.header-name');
+    const headerValues = document.querySelectorAll('.header-value');
+    
+    // Predefined headers for different API standards
+    const predefinedHeaders = {
+        'anthropic': {
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        'openai': {
+            'OpenAI-Organization': '',
+            'OpenAI-Project': ''
+        },
+        'grok': {
+            'X-API-Key': ''
+        }
+    };
+    
+    // Add event listener for API standard changes
+    if (apiStandardSelect) {
+        apiStandardSelect.addEventListener('change', function() {
+            const selectedStandard = this.value;
+            // Pre-fill common headers for the selected API standard
+            if (predefinedHeaders[selectedStandard]) {
+                // Check if we have any empty header rows
+                const emptyRows = document.querySelectorAll('.header-row:not(:has(input[value]))');
+                if (emptyRows.length === 0) {
+                    // Add a new row if all rows are filled
+                    addHeader();
+                }
+                
+                // Get the last header row
+                const headerRows = document.querySelectorAll('.header-row');
+                const lastRow = headerRows[headerRows.length - 1];
+                const nameInput = lastRow.querySelector('.header-name');
+                const valueInput = lastRow.querySelector('.header-value');
+                
+                // Pre-fill with first available header
+                const headers = Object.keys(predefinedHeaders[selectedStandard]);
+                if (headers.length > 0 && nameInput && valueInput) {
+                    nameInput.value = headers[0];
+                    valueInput.value = predefinedHeaders[selectedStandard][headers[0]];
+                }
+            }
+        });
+    }
+}
+
+// Build JSON model mapping from form fields
+function buildModelMapping() {
+    const haiku = document.getElementById('model_haiku').value;
+    const sonnet = document.getElementById('model_sonnet').value;
+    const opus = document.getElementById('model_opus').value;
+    
+    const modelMapping = {};
+    if (haiku) modelMapping['haiku'] = haiku;
+    if (sonnet) modelMapping['sonnet'] = sonnet;
+    if (opus) modelMapping['opus'] = opus;
+    
+    // Also build full model mapping for Claude models
+    const fullMapping = {};
+    if (haiku) {
+        fullMapping['claude-3-haiku-20240307'] = haiku;
+        fullMapping['claude-3-haiku'] = haiku;
+    }
+    if (sonnet) {
+        fullMapping['claude-3-5-sonnet-20241022'] = sonnet;
+        fullMapping['claude-3-5-sonnet'] = sonnet;
+    }
+    if (opus) {
+        fullMapping['claude-3-opus-20240229'] = opus;
+        fullMapping['claude-3-opus'] = opus;
+    }
+    
+    // Combine both mappings
+    const combinedMapping = {
+        ...modelMapping,
+        ...fullMapping
+    };
+    
+    document.getElementById('model_mapping').value = JSON.stringify(combinedMapping);
+}
+
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // This would populate existing headers if editing
+    // Add event listeners for model mapping fields
+    const modelFields = ['model_haiku', 'model_sonnet', 'model_opus'];
+    modelFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('change', buildModelMapping);
+            field.addEventListener('input', buildModelMapping);
+        }
+    });
+    
+    // Build initial model mapping
+    buildModelMapping();
+    
+    // Add header autocomplete
+    addHeaderAutocomplete();
+    
+    // Add event listener for form submission
+    const form = document.getElementById('provider-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Build model mapping before submitting
+            buildModelMapping();
+        });
+    }
+    
+    // Pre-fill headers for existing providers
+    const providerName = document.getElementById('name')?.value || '';
+    if (providerName) {
+        // Set default headers based on provider name
+        let defaultHeaders = {};
+        if (providerName.includes('OpenRouter')) {
+            defaultHeaders = {'HTTP-Referer': window.location.origin, 'X-Title': 'AI Proxy'};
+        } else if (providerName.includes('Grok')) {
+            defaultHeaders = {};
+        } else if (providerName.includes('Chutes')) {
+            defaultHeaders = {};
+        } else if (providerName.includes('Synthetic')) {
+            defaultHeaders = {};
+        } else if (providerName.includes('AIML')) {
+            defaultHeaders = {};
+        }
+        
+        // Apply default headers if none exist
+        const existingHeaders = document.querySelectorAll('.header-row');
+        if (existingHeaders.length === 1) {
+            const firstRow = existingHeaders[0];
+            const nameInput = firstRow.querySelector('.header-name');
+            const valueInput = firstRow.querySelector('.header-value');
+            
+            // Check if the first row is empty
+            if (nameInput && valueInput && !nameInput.value && !valueInput.value) {
+                const headerKeys = Object.keys(defaultHeaders);
+                if (headerKeys.length > 0) {
+                    nameInput.value = headerKeys[0];
+                    valueInput.value = defaultHeaders[headerKeys[0]];
+                }
+            }
+        }
+    }
 });
 </script>
 {% endblock %}
