@@ -1,131 +1,119 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1>
-                <i class="bi bi-plug"></i> Providers
-            </h1>
-            <div>
-                <a href="{{ url_for('web_admin.provider_new') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Add New Provider
-                </a>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-list"></i> Configured Providers
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if providers %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>API Standard</th>
-                                <th>Endpoint</th>
-                                <th>Default Model</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for provider in providers %}
-                            <tr>
-                                <td>
-                                    <strong>{{ provider.name }}</strong>
-                                    {% if provider.is_active %}
-                                    <span class="badge bg-success ms-2">Active</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">
-                                        {{ provider.api_standard|upper if provider.api_standard else 'OPENAI' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <code class="provider-endpoint" title="{{ provider.api_endpoint }}">
-                                        {{ provider.api_endpoint|truncate(40, True) }}
-                                    </code>
-                                </td>
-                                <td>{{ provider.default_model or 'Not set' }}</td>
-                                <td>
-                                    {% if provider.is_active %}
-                                    <span class="status-indicator status-active"></span> Active
-                                    {% else %}
-                                    <span class="status-indicator status-inactive"></span> Inactive
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        {% if not provider.is_active %}
-                                        <form method="POST" action="{{ url_for('web_admin.provider_activate', provider_id=provider.id) }}" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Activate Provider">
-                                                <i class="bi bi-play-circle"></i>
-                                            </button>
-                                        </form>
-                                        {% endif %}
-                                        
-                                        <a href="{{ url_for('web_admin.provider_edit', provider_id=provider.id) }}" class="btn btn-sm btn-outline-primary" title="Edit Provider">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        
-                                        <form method="POST" action="{{ url_for('web_admin.provider_test', provider_id=provider.id) }}" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-info" title="Test Provider">
-                                                <i class="bi bi-wifi"></i>
-                                            </button>
-                                        </form>
-                                        
-                                        <form method="POST" action="{{ url_for('web_admin.provider_delete', provider_id=provider.id) }}" class="d-inline" data-confirm="Are you sure you want to delete this provider?">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Provider">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-plug fs-1 text-muted"></i>
-                    <h3 class="mt-3">No Providers Configured</h3>
-                    <p class="text-muted">Add your first provider to get started.</p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>
+                    <i class="bi bi-plug"></i> Providers
+                </h1>
+                <div>
                     <a href="{{ url_for('web_admin.provider_new') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Add Provider
+                        <i class="bi bi-plus-circle"></i> Add New Provider
                     </a>
                 </div>
-                {% endif %}
             </div>
-        </div>
-        
-        {% if providers %}
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-lightning"></i> Quick Start Guide
-                </h5>
-            </div>
-            <div class="card-body">
-                <h6>Using Providers with Claude Code:</h6>
-                <p>After configuring and activating a provider, use it with Claude Code:</p>
-                
-                <div class="quick-links mb-3">
-                    {% for provider in providers %}
-                    <a href="{{ url_for('web_admin.provider_edit', provider_id=provider.id) }}" class="quick-link">
-                        <i class="bi bi-gear"></i> {{ provider.name }}
-                    </a>
-                    {% endfor %}
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list"></i> Configured Providers
+                    </h5>
                 </div>
-                
-                <pre class="bg-light p-3 rounded"><code># For OpenRouter with standard prompt
+                <div class="card-body">
+                    {% if providers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>API Endpoint</th>
+                                    <th>Default Model</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for provider in providers %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ provider.name }}</strong>
+                                        {% if provider.is_active %}
+                                        <span class="badge bg-success ms-2">Active</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <code class="small">{{ provider.api_endpoint }}</code>
+                                    </td>
+                                    <td>{{ provider.default_model or 'Not set' }}</td>
+                                    <td>
+                                        {% if provider.is_active %}
+                                        <span class="text-success">
+                                            <i class="bi bi-check-circle-fill"></i> Active
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">
+                                            <i class="bi bi-circle"></i> Inactive
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            {% if not provider.is_active %}
+                                            <form method="POST" action="{{ url_for('web_admin.provider_activate', provider_id=provider.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="Activate Provider">
+                                                    <i class="bi bi-play-circle"></i> Activate
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            
+                                            <a href="{{ url_for('web_admin.provider_edit', provider_id=provider.id) }}" class="btn btn-sm btn-outline-primary" title="Edit Provider">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            
+                                            <form method="POST" action="{{ url_for('web_admin.provider_test', provider_id=provider.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-info" title="Test Provider">
+                                                    <i class="bi bi-wifi"></i> Test
+                                                </button>
+                                            </form>
+                                            
+                                            <form method="POST" action="{{ url_for('web_admin.provider_delete', provider_id=provider.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this provider?')">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Provider">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-plug fs-1 text-muted"></i>
+                        <h3 class="mt-3">No Providers Configured</h3>
+                        <p class="text-muted">Add your first provider to get started.</p>
+                        <a href="{{ url_for('web_admin.provider_new') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Provider
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if providers %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-terminal"></i> Claude Code Usage
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>After configuring and activating a provider, use it with Claude Code:</p>
+                    
+                    <pre class="bg-dark text-white p-3 rounded"><code># For OpenRouter with standard prompt
 export ANTHROPIC_BASE_URL=http://localhost:8000/v1/messages/openrouter
 claude
 
@@ -136,31 +124,27 @@ claude
 # For AIML with standard prompt
 export ANTHROPIC_BASE_URL=http://localhost:8000/v1/messages/aiml
 claude</code></pre>
-                
-                <h6 class="mt-3">Available Providers:</h6>
-                <div class="row">
-                    {% for provider in providers %}
-                    <div class="col-md-6 col-lg-4 mb-2">
-                        <div class="card provider-card">
-                            <div class="card-body text-center">
-                                <div class="provider-icon">
-                                    <i class="bi bi-plug"></i>
-                                </div>
-                                <h5>{{ provider.name }}</h5>
-                                <p class="text-muted">{{ provider.api_endpoint|truncate(30, True) }}</p>
-                                <div class="d-grid gap-2">
-                                    <a href="{{ url_for('web_admin.provider_edit', provider_id=provider.id) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-gear"></i> Configure
-                                    </a>
-                                </div>
+                    
+                    <h6 class="mt-3">Available Providers:</h6>
+                    <ul class="list-group">
+                        {% for provider in providers %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ provider.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ provider.api_endpoint }}</small>
                             </div>
-                        </div>
-                    </div>
-                    {% endfor %}
+                            <div>
+                                <span class="badge bg-secondary">/{{ provider.name.lower().replace(' ', '-') }}</span>
+                                <span class="badge bg-info">/{{ provider.name.lower().replace(' ', '-') }}-custom</span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

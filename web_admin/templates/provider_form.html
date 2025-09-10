@@ -1,113 +1,102 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1>
-                <i class="bi bi-plug"></i> 
-                {% if provider %}Edit Provider{% else %}Add New Provider{% endif %}
-            </h1>
-            <a href="{{ url_for('web_admin.providers_list') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Providers
-            </a>
-        </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-gear"></i> Provider Configuration
-                </h5>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>
+                    <i class="bi bi-plug"></i> 
+                    {% if provider %}Edit Provider{% else %}Add New Provider{% endif %}
+                </h1>
+                <a href="{{ url_for('web_admin.providers_list') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Providers
+                </a>
             </div>
-            <div class="card-body">
-                <form method="POST" class="needs-validation" novalidate id="provider-form">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Provider Name *</label>
-                                <input type="text" class="form-control" id="name" name="name" 
-                                       value="{{ provider.name if provider else '' }}" required>
-                                <div class="invalid-feedback">
-                                    Please enter a provider name.
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-gear"></i> Provider Configuration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Provider Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ provider.name if provider else '' }}" required>
+                                    <div class="invalid-feedback">
+                                        Please enter a provider name.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="api_endpoint" class="form-label">API Endpoint *</label>
+                                    <input type="url" class="form-control" id="api_endpoint" name="api_endpoint" 
+                                           value="{{ provider.api_endpoint if provider else '' }}" required>
+                                    <div class="invalid-feedback">
+                                        Please enter a valid API endpoint URL.
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="api_standard" class="form-label">API Standard *</label>
-                                <select class="form-select" id="api_standard" name="api_standard" required>
-                                    <option value="anthropic" {% if provider and provider.api_standard == 'anthropic' %}selected{% endif %}>Anthropic</option>
-                                    <option value="openai" {% if provider and provider.api_standard == 'openai' %}selected{% endif %}>OpenAI</option>
-                                    <option value="grok" {% if provider and provider.api_standard == 'grok' %}selected{% endif %}>Grok/XAI</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select an API standard.
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="api_key" class="form-label">API Key *</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="api_key" name="api_key" 
+                                               value="{{ provider.api_key if provider else '' }}" required>
+                                        <button class="btn btn-outline-secondary" type="button" 
+                                                onclick="togglePasswordVisibility('api_key')">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please enter an API key.
+                                    </div>
                                 </div>
-                                <small class="form-text text-muted">
-                                    Select the API format this provider uses
-                                </small>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="api_endpoint" class="form-label">API Endpoint *</label>
-                                <input type="url" class="form-control" id="api_endpoint" name="api_endpoint" 
-                                       value="{{ provider.api_endpoint if provider else '' }}" required>
-                                <div class="invalid-feedback">
-                                    Please enter a valid API endpoint URL.
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="default_model" class="form-label">Default Model</label>
+                                    <input type="text" class="form-control" id="default_model" name="default_model" 
+                                           value="{{ provider.default_model if provider else '' }}">
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="api_key" class="form-label">API Key *</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="api_key" name="api_key" 
-                                           value="{{ provider.api_key if provider else '' }}" required>
-                                    <button class="btn btn-outline-secondary" type="button" 
-                                            onclick="togglePasswordVisibility('api_key')" 
-                                            data-target="#api_key">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </div>
-                                <div class="invalid-feedback">
-                                    Please enter an API key.
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="auth_method" class="form-label">Authentication Method</label>
+                                    <select class="form-select" id="auth_method" name="auth_method">
+                                        <option value="bearer_token" {% if provider and provider.auth_method == 'bearer_token' %}selected{% endif %}>Bearer Token</option>
+                                        <option value="basic_auth" {% if provider and provider.auth_method == 'basic_auth' %}selected{% endif %}>Basic Authentication</option>
+                                        <option value="custom_header" {% if provider and provider.auth_method == 'custom_header' %}selected{% endif %}>Custom Header</option>
+                                    </select>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="default_model" class="form-label">Default Model</label>
-                                <input type="text" class="form-control" id="default_model" name="default_model" 
-                                       value="{{ provider.default_model if provider else '' }}">
-                                <small class="form-text text-muted">
-                                    Default model to use when none is specified
-                                </small>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="api_standard" class="form-label">API Standard</label>
+                                    <select class="form-select" id="api_standard" name="api_standard">
+                                        <option value="openai" {% if provider and provider.api_standard == 'openai' %}selected{% endif %}>OpenAI Compatible</option>
+                                        <option value="anthropic" {% if provider and provider.api_standard == 'anthropic' %}selected{% endif %}>Anthropic Compatible</option>
+                                        <option value="grok" {% if provider and provider.api_standard == 'grok' %}selected{% endif %}>Grok Format</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="auth_method" class="form-label">Authentication Method</label>
-                                <select class="form-select" id="auth_method" name="auth_method">
-                                    <option value="bearer_token" {% if provider and provider.auth_method == 'bearer_token' %}selected{% endif %}>Bearer Token</option>
-                                    <option value="basic_auth" {% if provider and provider.auth_method == 'basic_auth' %}selected{% endif %}>Basic Authentication</option>
-                                    <option value="custom_header" {% if provider and provider.auth_method == 'custom_header' %}selected{% endif %}>Custom Header</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <div class="form-check">
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-check mb-3">
                                     <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
                                            {% if provider and provider.is_active %}checked{% endif %}>
                                     <label class="form-check-label" for="is_active">
@@ -116,156 +105,147 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- User-Friendly Model Mapping Section -->
-                    <div class="form-section">
-                        <h5>
-                            <i class="bi bi-diagram-3"></i> Model Mapping
-                        </h5>
-                        <hr>
                         
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> 
-                            Map Anthropic models to equivalent models available on this provider. 
-                            Leave fields empty to use the default model specified above.
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="model_haiku" class="form-label">Haiku Equivalent</label>
-                                    <input type="text" class="form-control" id="model_haiku" name="model_haiku" 
-                                           placeholder="e.g., claude-3-haiku-20240307" 
-                                           value="{{ provider.model_mapping.haiku if provider and provider.model_mapping else '' }}">
-                                    <small class="form-text text-muted">
-                                        Model equivalent to Claude 3 Haiku
-                                    </small>
+                        <div class="form-section">
+                            <h5>
+                                <i class="bi bi-diagram-3"></i> Model Mapping
+                            </h5>
+                            <hr>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="model_haiku" class="form-label">Haiku Equivalent</label>
+                                        <input type="text" class="form-control" id="model_haiku" name="model_haiku" 
+                                               placeholder="e.g., claude-3-haiku-20240307" 
+                                               value="{{ provider.model_mapping.haiku if provider and provider.model_mapping else '' }}">
+                                        <small class="form-text text-muted">
+                                            Model equivalent to Claude 3 Haiku
+                                        </small>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="model_sonnet" class="form-label">Sonnet Equivalent</label>
-                                    <input type="text" class="form-control" id="model_sonnet" name="model_sonnet" 
-                                           placeholder="e.g., claude-3-5-sonnet-20241022" 
-                                           value="{{ provider.model_mapping.sonnet if provider and provider.model_mapping else '' }}">
-                                    <small class="form-text text-muted">
-                                        Model equivalent to Claude 3.5 Sonnet
-                                    </small>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="model_sonnet" class="form-label">Sonnet Equivalent</label>
+                                        <input type="text" class="form-control" id="model_sonnet" name="model_sonnet" 
+                                               placeholder="e.g., claude-3-5-sonnet-20241022" 
+                                               value="{{ provider.model_mapping.sonnet if provider and provider.model_mapping else '' }}">
+                                        <small class="form-text text-muted">
+                                            Model equivalent to Claude 3.5 Sonnet
+                                        </small>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="model_opus" class="form-label">Opus Equivalent</label>
-                                    <input type="text" class="form-control" id="model_opus" name="model_opus" 
-                                           placeholder="e.g., claude-3-opus-20240229" 
-                                           value="{{ provider.model_mapping.opus if provider and provider.model_mapping else '' }}">
-                                    <small class="form-text text-muted">
-                                        Model equivalent to Claude 3 Opus
-                                    </small>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="model_opus" class="form-label">Opus Equivalent</label>
+                                        <input type="text" class="form-control" id="model_opus" name="model_opus" 
+                                               placeholder="e.g., claude-3-opus-20240229" 
+                                               value="{{ provider.model_mapping.opus if provider and provider.model_mapping else '' }}">
+                                        <small class="form-text text-muted">
+                                            Model equivalent to Claude 3 Opus
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Hidden field to store JSON model mapping -->
-                        <input type="hidden" id="model_mapping" name="model_mapping" 
-                               value="{{ provider.model_mapping_json if provider else '{}' }}">
-                    </div>
-                    
-                    <div class="form-section">
-                        <h5>
-                            <i class="bi bi-list"></i> Custom Headers
-                        </h5>
-                        <hr>
-                        
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> 
-                            Provider-specific headers. Pre-filled defaults for known providers.
-                        </div>
-                        
-                        <div id="headers-container">
-                            {% if provider and provider.headers %}
-                                {% for key, value in provider.headers.items() %}
+                        <div class="form-section">
+                            <h5>
+                                <i class="bi bi-list"></i> Custom Headers
+                            </h5>
+                            <hr>
+                            
+                            <div id="headers-container">
+                                {% if provider and provider.headers %}
+                                    {% for key, value in provider.headers.items() %}
+                                    <div class="row mb-2 header-row">
+                                        <div class="col-md-5">
+                                            <input type="text" class="form-control header-key" name="header_key[]" placeholder="Header Name" value="{{ key }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control header-value" name="header_value[]" placeholder="Header Value" value="{{ value }}">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="removeHeader(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
                                 <div class="row mb-2 header-row">
                                     <div class="col-md-5">
-                                        <input type="text" class="form-control" name="header_key[]" placeholder="Header Name" value="{{ key }}">
+                                        <input type="text" class="form-control header-key" name="header_key[]" placeholder="Header Name">
                                     </div>
                                     <div class="col-md-6">
-                                        <input type="text" class="form-control" name="header_value[]" placeholder="Header Value" value="{{ value }}">
+                                        <input type="text" class="form-control header-value" name="header_value[]" placeholder="Header Value">
                                     </div>
                                     <div class="col-md-1">
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeHeader(this)">
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeHeader(this)" disabled>
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 </div>
-                                {% endfor %}
-                            {% else %}
-                            <div class="row mb-2 header-row">
-                                <div class="col-md-5">
-                                    <input type="text" class="form-control header-name" name="header_key[]" placeholder="Header Name">
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control header-value" name="header_value[]" placeholder="Header Value">
-                                </div>
-                                <div class="col-md-1">
-                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeHeader(this)" disabled>
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
-                        </div>
-                        
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addHeader()">
-                            <i class="bi bi-plus-circle"></i> Add Header
-                        </button>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            {% if provider %}
-                            <a href="{{ url_for('web_admin.provider_delete', provider_id=provider.id) }}" 
-                               class="btn btn-danger" 
-                               data-confirm="Are you sure you want to delete this provider?">
-                                <i class="bi bi-trash"></i> Delete Provider
-                            </a>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> 
-                                {% if provider %}Update Provider{% else %}Save Provider{% endif %}
+                            
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addHeader()">
+                                <i class="bi bi-plus-circle"></i> Add Header
                             </button>
                         </div>
-                    </div>
-                </form>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <div>
+                                {% if provider %}
+                                <a href="{{ url_for('web_admin.provider_delete', provider_id=provider.id) }}" 
+                                   class="btn btn-danger" 
+                                   onclick="return confirm('Are you sure you want to delete this provider?')">
+                                    <i class="bi bi-trash"></i> Delete Provider
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> 
+                                    {% if provider %}Update Provider{% else %}Save Provider{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
-        
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-info-circle"></i> Provider Information
-                </h5>
-            </div>
-            <div class="card-body">
-                <h6>Common Provider Endpoints:</h6>
-                <ul>
-                    <li><strong>Grok (Direct)</strong>: <code>https://api.x.ai/v1</code> (Anthropic format)</li>
-                    <li><strong>Grok (OpenAI)</strong>: <code>https://api.x.ai/v1</code> (OpenAI format)</li>
-                    <li><strong>OpenRouter</strong>: <code>https://openrouter.ai/api/v1</code> (OpenAI format)</li>
-                    <li><strong>AIML API</strong>: <code>https://api.aimlapi.com/v1</code> (OpenAI format)</li>
-                    <li><strong>Synthetic</strong>: <code>https://api.synthetic.new/v1</code> (OpenAI format)</li>
-                    <li><strong>Chutes</strong>: <code>http://llm.chutes.ai/api/v1</code> (OpenAI format)</li>
-                </ul>
-                
-                <h6 class="mt-3">API Standards:</h6>
-                <ul>
-                    <li><strong>Anthropic</strong>: Uses Anthropic API format (messages endpoint)</li>
-                    <li><strong>OpenAI</strong>: Uses OpenAI API format (chat/completions endpoint)</li>
-                    <li><strong>Grok</strong>: xAI's custom format (similar to OpenAI)</li>
-                </ul>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle"></i> Provider Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Common Provider Endpoints:</h6>
+                    <ul>
+                        <li><strong>OpenRouter</strong>: <code>https://openrouter.ai/api/v1</code></li>
+                        <li><strong>Chutes</strong>: <code>http://llm.chutes.ai/api/v1</code></li>
+                        <li><strong>Synthetic</strong>: <code>https://api.synthetic.new/v1</code></li>
+                        <li><strong>AIML</strong>: <code>https://api.aimlapi.com/v1</code></li>
+                        <li><strong>Grok (Direct)</strong>: <code>https://api.x.ai/v1</code></li>
+                        <li><strong>Grok (OpenAI)</strong>: <code>https://api.x.ai/v1</code></li>
+                    </ul>
+                    
+                    <h6 class="mt-3">Authentication Methods:</h6>
+                    <ul>
+                        <li><strong>Bearer Token</strong>: Standard API key in Authorization header</li>
+                        <li><strong>Basic Auth</strong>: Username/password in Authorization header</li>
+                        <li><strong>Custom Header</strong>: API key in custom header</li>
+                    </ul>
+                    
+                    <h6 class="mt-3">API Standards:</h6>
+                    <ul>
+                        <li><strong>OpenAI Compatible</strong>: OpenAI format (chat/completions)</li>
+                        <li><strong>Anthropic Compatible</strong>: Anthropic format (messages)</li>
+                        <li><strong>Grok Format</strong>: xAI's custom format</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -276,11 +256,11 @@
 <script>
 function addHeader() {
     const container = document.getElementById('headers-container');
-    const row = document.createElement('div');
-    row.className = 'row mb-2 header-row';
-    row.innerHTML = `
+    const newRow = document.createElement('div');
+    newRow.className = 'row mb-2 header-row';
+    newRow.innerHTML = `
         <div class="col-md-5">
-            <input type="text" class="form-control header-name" name="header_key[]" placeholder="Header Name">
+            <input type="text" class="form-control header-key" name="header_key[]" placeholder="Header Name">
         </div>
         <div class="col-md-6">
             <input type="text" class="form-control header-value" name="header_value[]" placeholder="Header Value">
@@ -291,10 +271,7 @@ function addHeader() {
             </button>
         </div>
     `;
-    container.appendChild(row);
-    
-    // Add event listeners for autocomplete
-    addHeaderAutocomplete();
+    container.appendChild(newRow);
 }
 
 function removeHeader(button) {
@@ -306,7 +283,7 @@ function removeHeader(button) {
 
 function togglePasswordVisibility(fieldId) {
     const field = document.getElementById(fieldId);
-    const icon = document.querySelector(`[data-target="#${fieldId}"] i`);
+    const icon = field.nextElementSibling.querySelector('i');
     
     if (field.type === 'password') {
         field.type = 'text';
@@ -317,153 +294,16 @@ function togglePasswordVisibility(fieldId) {
     }
 }
 
-// Add autocomplete for common headers based on provider type
-function addHeaderAutocomplete() {
-    const apiStandardSelect = document.getElementById('api_standard');
-    const headerNames = document.querySelectorAll('.header-name');
-    const headerValues = document.querySelectorAll('.header-value');
-    
-    // Predefined headers for different API standards
-    const predefinedHeaders = {
-        'anthropic': {
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        'openai': {
-            'OpenAI-Organization': '',
-            'OpenAI-Project': ''
-        },
-        'grok': {
-            'X-API-Key': ''
-        }
-    };
-    
-    // Add event listener for API standard changes
-    if (apiStandardSelect) {
-        apiStandardSelect.addEventListener('change', function() {
-            const selectedStandard = this.value;
-            // Pre-fill common headers for the selected API standard
-            if (predefinedHeaders[selectedStandard]) {
-                // Check if we have any empty header rows
-                const emptyRows = document.querySelectorAll('.header-row:not(:has(input[value]))');
-                if (emptyRows.length === 0) {
-                    // Add a new row if all rows are filled
-                    addHeader();
-                }
-                
-                // Get the last header row
-                const headerRows = document.querySelectorAll('.header-row');
-                const lastRow = headerRows[headerRows.length - 1];
-                const nameInput = lastRow.querySelector('.header-name');
-                const valueInput = lastRow.querySelector('.header-value');
-                
-                // Pre-fill with first available header
-                const headers = Object.keys(predefinedHeaders[selectedStandard]);
-                if (headers.length > 0 && nameInput && valueInput) {
-                    nameInput.value = headers[0];
-                    valueInput.value = predefinedHeaders[selectedStandard][headers[0]];
-                }
-            }
-        });
-    }
-}
-
-// Build JSON model mapping from form fields
-function buildModelMapping() {
-    const haiku = document.getElementById('model_haiku').value;
-    const sonnet = document.getElementById('model_sonnet').value;
-    const opus = document.getElementById('model_opus').value;
-    
-    const modelMapping = {};
-    if (haiku) modelMapping['haiku'] = haiku;
-    if (sonnet) modelMapping['sonnet'] = sonnet;
-    if (opus) modelMapping['opus'] = opus;
-    
-    // Also build full model mapping for Claude models
-    const fullMapping = {};
-    if (haiku) {
-        fullMapping['claude-3-haiku-20240307'] = haiku;
-        fullMapping['claude-3-haiku'] = haiku;
-    }
-    if (sonnet) {
-        fullMapping['claude-3-5-sonnet-20241022'] = sonnet;
-        fullMapping['claude-3-5-sonnet'] = sonnet;
-    }
-    if (opus) {
-        fullMapping['claude-3-opus-20240229'] = opus;
-        fullMapping['claude-3-opus'] = opus;
-    }
-    
-    // Combine both mappings
-    const combinedMapping = {
-        ...modelMapping,
-        ...fullMapping
-    };
-    
-    document.getElementById('model_mapping').value = JSON.stringify(combinedMapping);
-}
-
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Add event listeners for model mapping fields
-    const modelFields = ['model_haiku', 'model_sonnet', 'model_opus'];
-    modelFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('change', buildModelMapping);
-            field.addEventListener('input', buildModelMapping);
-        }
-    });
-    
-    // Build initial model mapping
-    buildModelMapping();
-    
-    // Add header autocomplete
-    addHeaderAutocomplete();
-    
-    // Add event listener for form submission
-    const form = document.getElementById('provider-form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            // Build model mapping before submitting
-            buildModelMapping();
+    // Add event listeners for password visibility toggles
+    const toggleButtons = document.querySelectorAll('[onclick*="togglePasswordVisibility"]');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const fieldId = this.getAttribute('onclick').match(/togglePasswordVisibility\('(.+?)'\)/)[1];
+            togglePasswordVisibility(fieldId);
         });
-    }
-    
-    // Pre-fill headers for existing providers
-    const providerName = document.getElementById('name')?.value || '';
-    if (providerName) {
-        // Set default headers based on provider name
-        let defaultHeaders = {};
-        if (providerName.includes('OpenRouter')) {
-            defaultHeaders = {'HTTP-Referer': window.location.origin, 'X-Title': 'AI Proxy'};
-        } else if (providerName.includes('Grok')) {
-            defaultHeaders = {};
-        } else if (providerName.includes('Chutes')) {
-            defaultHeaders = {};
-        } else if (providerName.includes('Synthetic')) {
-            defaultHeaders = {};
-        } else if (providerName.includes('AIML')) {
-            defaultHeaders = {};
-        }
-        
-        // Apply default headers if none exist
-        const existingHeaders = document.querySelectorAll('.header-row');
-        if (existingHeaders.length === 1) {
-            const firstRow = existingHeaders[0];
-            const nameInput = firstRow.querySelector('.header-name');
-            const valueInput = firstRow.querySelector('.header-value');
-            
-            // Check if the first row is empty
-            if (nameInput && valueInput && !nameInput.value && !valueInput.value) {
-                const headerKeys = Object.keys(defaultHeaders);
-                if (headerKeys.length > 0) {
-                    nameInput.value = headerKeys[0];
-                    valueInput.value = defaultHeaders[headerKeys[0]];
-                }
-            }
-        }
-    }
+    });
 });
 </script>
 {% endblock %}
